@@ -69,7 +69,7 @@ const baseConfig = {
 
 const productionConfig = {
   ...baseConfig,
-  output: 'export',
+  output: 'standalone',
 
   experimental: {
     optimizePackageImports: ['lucide-react', '@heroui/react'],
