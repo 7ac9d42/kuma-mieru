@@ -1,21 +1,28 @@
 import { PageConfigProvider } from '@/components/context/PageConfigContext';
 import { AppShell } from '@/components/layout/AppShell';
-import { MonitorDetailContent } from '@/components/monitor/MonitorDetailContent';
-import { getConfig } from '@/config/api';
+import { StatusPage } from '@/components/status/StatusPage';
+import { getAvailablePageIds, getConfig } from '@/config/api';
 import { getGlobalConfig, getPageTabsMetadata } from '@/services/config.server';
 import { notFound } from 'next/navigation';
 
-export default async function MonitorDetailPage({
+export async function generateStaticParams() {
+  const defaultConfig = getConfig();
+
+  if (!defaultConfig) {
+    return [];
+  }
+
+  return getAvailablePageIds()
+    .filter((pageId) => pageId !== defaultConfig.defaultPageId)
+    .map((pageId) => ({ pageId }));
+}
+
+export default async function StatusPageRoute({
   params,
-  searchParams,
 }: {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ pageId?: string }>;
+  params: { pageId: string };
 }) {
-  const { id: monitorId } = await params;
-  const resolvedSearchParams = await searchParams;
-  const requestedPageId = resolvedSearchParams?.pageId;
-  const pageConfig = requestedPageId ? getConfig(requestedPageId) : getConfig();
+  const pageConfig = getConfig(params.pageId);
 
   if (!pageConfig) {
     notFound();
@@ -29,7 +36,7 @@ export default async function MonitorDetailPage({
   return (
     <PageConfigProvider initialConfig={pageConfig}>
       <AppShell footerConfig={footerConfig} pageTabs={pageTabs}>
-        <MonitorDetailContent monitorId={monitorId} />
+        <StatusPage />
       </AppShell>
     </PageConfigProvider>
   );
